@@ -4,9 +4,10 @@ It's as the title suggests: a silly experiment and foray into Perl via the
 creation of a dumb tool I actually needed. 
 
 The goal of this script is to create a way to reuse html from elsewhere (e.g.
-navbars, headers, footers) without manually copy-pasting. Ideally, I don't
-manually copy-paste as a mean of reducing the amount of differences and errors
-that are incurred in the long-term.
+navbars, headers, footers) without manually copy-pasting. I fear that manual
+copying may lead to the common html snippets to diverge across pages, which
+would be catastrophic in the long-term. Ideally, I don't manually copy-paste;
+we can automate after all!
 
 My main motive here is to avoid sophisticated static-site generators due to how
 over-engineered they feel, compared to what I really need (i.e. copying
