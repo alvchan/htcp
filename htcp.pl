@@ -7,18 +7,19 @@ use autodie;
 
 sub ltrim { my $s = shift; $s =~ s/^\s+//; return $s; };
 
-my $iter = path(".")->iterator;
+my $iter = path("_posts")->iterator;
 while (my $file = $iter->()) {
   # skip if it's a directory
   next if $file->is_dir();
 
   # we only want .html files
-  next unless $file =~ /.html$/;
+  next unless $file =~ /(\w+\.html)$/;
 
   my $file_handle = $file->openr_utf8();
 
-  my $resfile = path("./_posts/$file");
+  my $resfile = path("$1");
   $resfile->remove;
+	print $1 . "\n";
 
   my $lineno = 0;
   while (my $line = $file_handle->getline()) {
@@ -27,7 +28,7 @@ while (my $file = $iter->()) {
     if ($line =~ /^[ \t]*!template (\w+\.html)$/) {
       print "line $lineno: " . ltrim($line);
 
-      my $tfile = path("./_templates/$1");
+      my $tfile = path("_templates/$1");
 
       if ($tfile->exists()) {
         my $template = $tfile->openr_utf8();
