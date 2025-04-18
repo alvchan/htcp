@@ -2,45 +2,53 @@
 use strict;
 use warnings;
 
-use Path::Tiny;
-use autodie;
+sub ls {
+  my $dirname = ".";
+  if (scalar @_ > 0) {
+    $dirname = shift @_;
+  }
+
+  opendir my $dir, $dirname or die "Can't open directory $dirname. Do you have read permissions?";
+  my @files = readdir $dir;
+  closedir $dir;
+
+  return @files;
+}
 
 sub ltrim { my $s = shift; $s =~ s/^\s+//; return $s; };
 
-my $iter = path("_posts")->iterator;
-while (my $file = $iter->()) {
+my $dir = "_posts";
+foreach my $file (ls $dir) {
   # skip if it's a directory
-  next if $file->is_dir();
+  next if -d $file or $file =~ /^\./;
 
   # we only want .html files
-  next unless $file =~ /(\w+\.html)$/;
+  next unless $file =~ /^(\w+\.html)$/;
 
-  my $file_handle = $file->openr_utf8();
+  my $path = "$dir/$file";
+  open my $fh, "<:encoding(UTF-8)", $path;
 
-  my $resfile = path("$1");
-  $resfile->remove;
-	print $1 . "\n";
+  # overwrite old output
+  unlink $file if -e $file;
+  open my $resfile, ">>:encoding(UTF-8)", $file;
 
-  my $lineno = 0;
-  while (my $line = $file_handle->getline()) {
-    $lineno++;
+  print "$file\n";
 
-    if ($line =~ /^[ \t]*!template (\w+\.html)$/) {
+  my $lineno = 1;
+  foreach my $line (<$fh>) {
+    # find and replace '!template' with the actual snippet
+    if ($line =~ /^\s*!template (\w+\.html)$/) {
       print "line $lineno: " . ltrim($line);
 
-      my $tfile = path("_templates/$1");
+      open my $template_file, "<:encoding(UTF-8)", "_templates/$1"
+        or die "[error] line $lineno: Can't open _templates/$1. Are you sure it exists?\n";
 
-      if ($tfile->exists()) {
-        my $template = $tfile->openr_utf8();
-
-        while (my $tln = $template->getline()) {
-          $resfile->append_utf8($tln);
-        }
-      } else {
-        print "line $lineno: template $1 not accounted for - check if missing";
-      }
+      my @template = <$template_file>;
+      print $resfile @template;
     } else {
-      $resfile->append_utf8($line);
+      print $resfile $line;
     }
+
+    $lineno++;
   }
 }
