@@ -44,6 +44,8 @@ foreach my $file (ls $dir) {
         or die "[error] line $lineno: Can't open _templates/$1. Are you sure it exists?\n";
 
       my @template = <$template_file>;
+      close $template_file or warn "[warning] line $lineno: Can't close template $template_file.\n";
+
       print $resfile @template;
     } else {
       print $resfile $line;
@@ -51,4 +53,7 @@ foreach my $file (ls $dir) {
 
     $lineno++;
   }
+
+  close $resfile;
+  close $fh;
 }
